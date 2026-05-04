@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmic Invaders</title>
+    <style>
+        /* Center the canvas on a black background */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <!-- Phaser 3 loaded from CDN — works on GitHub Pages without a local lib/ folder -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+
+    <!-- Scenes must load before main.js so the classes exist when config runs -->
+    <script src="src/Scenes/TitleScene.js"></script>
+    <script src="src/Scenes/GameScene.js"></script>
+    <script src="src/Scenes/UIScene.js"></script>
+    <script src="src/Scenes/GameOverScene.js"></script>
+
+    <!-- main.js last — it references all the scene classes above -->
+    <script src="src/main.js"></script>
+</body>
+</html>
