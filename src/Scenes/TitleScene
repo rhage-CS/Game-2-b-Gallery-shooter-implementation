@@ -25,22 +25,20 @@ class TitleScene extends Phaser.Scene {
     }
 
     preload() {
-        // ── Sprite assets from Kenny packs (flat assets/ folder) ──────
-        this.load.setPath("assets/");
-        this.load.image("player",     "playerShip1_green.png");  // SS Nimbus player ship
-        this.load.image("ufo",        "enemyBlack1.png");         // UFO Cruiser enemy
-        this.load.image("critter",    "enemyRed1.png");           // Dive Critter enemy
-        this.load.image("mothership", "ufoRed.png");              // Mothership boss
-        this.load.image("pbullet",    "laserBlue01.png");         // Player bullet
-        this.load.image("ebullet",    "laserRed01.png");          // Enemy bullet
-        this.load.image("spark",      "meteorBrown_small1.png");  // Explosion particle
-        this.load.image("barrier",    "shield3.png");             // Barrier segment
+        // Sprite assets from the assets/Characters/others/ folder
+        this.load.setPath("assets/Characters/others/");
+        this.load.image("player",     "Playership.png");    // SS Nimbus player ship
+        this.load.image("ufo",        "Enemyship.png");     // UFO Cruiser enemy
+        this.load.image("critter",    "Enemyship.png");     // Dive Critter enemy
+        this.load.image("mothership", "Mothership.png");    // Mothership boss
+        this.load.image("pbullet",    "Playerbullet.png");  // Player bullet
+        this.load.image("ebullet",    "Enemybullet.png");   // Enemy bullet
+        this.load.image("spark",      "Spark.png");         // Explosion particle
+        this.load.image("barrier",    "Barrier.png");       // Barrier segment
 
-        // ── Background music (mp3, loops during gameplay) ─────────────
-        this.load.setPath("audio/");
-        this.load.audio("bgmusic", "bgmusic.mp3");
-
-        // ── Sound effects (ogg, short one-shot clips) ─────────────────
+        // Audio assets from the assets/music/ folder
+        this.load.setPath("assets/music/");
+        this.load.audio("bgmusic",       "bgmusic.mp3");
         this.load.audio("sfx_shoot",     "shoot.ogg");
         this.load.audio("sfx_explode",   "explosion.ogg");
         this.load.audio("sfx_hit",       "hit.ogg");
@@ -55,7 +53,7 @@ class TitleScene extends Phaser.Scene {
         this.bgMusic = this.sound.add("bgmusic", { loop: true, volume: 0.4 });
         this.bgMusic.play();
 
-        // ── Scrolling starfield setup ─────────────────────────────────
+        // Scrolling starfield setup
         // Each star is an object with position, speed, and size
         this.stars = [];
         for (let i = 0; i < 120; i++) {
@@ -69,7 +67,7 @@ class TitleScene extends Phaser.Scene {
         // Single graphics object redrawn every frame for the starfield
         this.starGfx = this.add.graphics();
 
-        // ── Title text ────────────────────────────────────────────────
+        // Title text
         this.add.text(W / 2, 80, "COSMIC INVADERS", {
             fontSize:        "40px",
             fontFamily:      "monospace",
@@ -92,13 +90,12 @@ class TitleScene extends Phaser.Scene {
             color:      "#ff8800"
         }).setOrigin(0.5);
 
-        // ── Attract demo enemies ──────────────────────────────────────
-        // A group of UFOs and critters that march across the screen
-        // to show the player what enemies look like before the game starts
+        // Attract demo enemies — a group of UFOs and critters that march
+        // across the screen to show the player what enemies look like
         this.demoEnemies = this.add.group();
         this._spawnDemoEnemies();
 
-        // ── Blinking start prompt ─────────────────────────────────────
+        // Blinking start prompt
         this.promptText = this.add.text(W / 2, H - 80, "PRESS SPACE TO START", {
             fontSize:   "20px",
             fontFamily: "monospace",
@@ -121,12 +118,10 @@ class TitleScene extends Phaser.Scene {
             color:      "#aaaaaa"
         }).setOrigin(0.5);
 
-        // ── Input ─────────────────────────────────────────────────────
-        // once() so pressing space a second time mid-transition doesn't double-fire
+        // once() so pressing space mid-transition doesnt double-fire
         this.input.keyboard.once("keydown-SPACE", () => this._startGame());
         this.input.on("pointerdown", () => this._startGame());
 
-        // ── Attract loop timer ────────────────────────────────────────
         // Clears and respawns demo enemies every 8 seconds
         this.time.addEvent({
             delay:         8000,
@@ -140,7 +135,7 @@ class TitleScene extends Phaser.Scene {
         const W = this.scale.width;
         const H = this.scale.height;
 
-        // ── Redraw starfield each frame ───────────────────────────────
+        // Redraw starfield each frame
         this.starGfx.clear();
         for (const s of this.stars) {
             s.y += s.speed;
@@ -149,8 +144,7 @@ class TitleScene extends Phaser.Scene {
             this.starGfx.fillRect(s.x, s.y, s.size, s.size);
         }
 
-        // ── Animate attract enemies ───────────────────────────────────
-        // Move them right and add a sine wave vertical wobble
+        // Move demo enemies right with a sine wave vertical wobble
         for (const e of this.demoEnemies.getChildren()) {
             e.x += e.getData("vx");
             e.y += Math.sin(e.x * 0.02) * 1.2;  // wavy motion
@@ -187,7 +181,7 @@ class TitleScene extends Phaser.Scene {
         gameState.score = 0;
         gameState.lives = 3;
         gameState.wave  = 1;
-        this.bgMusic.stop();        // stop title music before switching scenes
+        this.bgMusic.stop();         // stop title music before switching scenes
         this.scene.start("GameScene");
         this.scene.start("UIScene"); // UIScene runs in parallel with GameScene
     }
