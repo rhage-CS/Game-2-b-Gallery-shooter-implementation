@@ -133,14 +133,15 @@ class GameOverScene extends Phaser.Scene {
 
     // Reset all game state and restart from wave 1
     _restart() {
-        gameState.score = 0;
-        gameState.lives = 3;
-        gameState.wave  = 1;
-        this.scene.stop("GameOverScene");
-        this.scene.stop("GameScene");
-        this.scene.start("GameScene"); // create() calls init_game() for a full reset
-        this.scene.start("UIScene");
-    }
+    gameState.score = 0;
+    gameState.lives = 3;
+    gameState.wave  = 1;
+    this.scene.stop("GameOverScene");
+    this.scene.stop("UIScene");
+    this.scene.stop("GameScene");
+    this.scene.start("GameScene");
+    this.scene.start("UIScene");
+}
 
     // Return to the title screen
     _title() {

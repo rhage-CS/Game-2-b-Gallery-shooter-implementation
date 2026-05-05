@@ -60,10 +60,10 @@ class UIScene extends Phaser.Scene {
 
     // Pull current values from gameState and update all text objects
     _refresh() {
+        if (!gameState) return;
         this.scoreText.setText(`SCORE: ${gameState.score}`);
         this.hiText.setText(`HI: ${gameState.hiScore}`);
         this.waveText.setText(`WAVE ${gameState.wave}`);
-        // One heart symbol per remaining life
         this.livesText.setText("♥".repeat(Math.max(0, gameState.lives)));
     }
 }

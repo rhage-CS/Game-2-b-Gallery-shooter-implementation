@@ -43,6 +43,8 @@ class GameScene extends Phaser.Scene {
     // Resets ALL game variables back to their starting conditions
     // Called by create() on first load and by GameOverScene on restart
     init_game() {
+        if (!this.scale) return; // safety check in case scene is not ready
+
         const W = this.scale.width;
         const H = this.scale.height;
 
@@ -61,18 +63,19 @@ class GameScene extends Phaser.Scene {
         this.tweens.killAll();
 
         // State flags
-        this.isGameOver   = false;  // true once the player runs out of lives
-        this.waveClear    = false;  // true while between waves
-        this.bossActive   = false;  // true while the mothership is on screen
-        this.bossPhase    = 0;      // 0 = patrol, 1 = aggressive
-        this.bossPhaseSet = false;  // prevents phase 2 from triggering more than once
-        this.bossMaxHp    = 1;      // set when boss spawns, used to draw the HP bar
-        this.boss         = null;   // reference to the boss sprite
-        this.bossBar      = null;   // graphics object for the HP bar
-        this.canShoot     = true;   // false while player shoot cooldown is active
-        this.driftDir     = 1;      // 1 = moving right, -1 = moving left
-        this.driftSpeed   = 20;     // pixels per second for UFO formation drift
-        this.driftDropY   = 0;      // extra downward pixels applied on wall bounce
+        this.isGameOver      = false;  // true once the player runs out of lives
+        this.waveClear       = false;  // true while between waves
+        this.bossActive      = false;  // true while the mothership is on screen
+        this.bossPhase       = 0;      // 0 = patrol, 1 = aggressive
+        this.bossPhaseSet    = false;  // prevents phase 2 from triggering more than once
+        this.bossMaxHp       = 1;      // set when boss spawns, used to draw the HP bar
+        this.boss            = null;   // reference to the boss sprite
+        this.bossBar         = null;   // graphics object for the HP bar
+        this.canShoot        = true;   // false while player shoot cooldown is active
+        this.driftDir        = 1;      // 1 = moving right, -1 = moving left
+        this.driftSpeed      = 20;     // pixels per second for UFO formation drift
+        this.driftDropY      = 0;      // extra downward pixels applied on wall bounce
+        this.crittersThrough = 0;      // tracks how many critters have reached the bottom
 
         // Scrolling starfield
         this.stars = [];
@@ -96,11 +99,12 @@ class GameScene extends Phaser.Scene {
         this.barrierGroup  = this.physics.add.staticGroup();  // barrier segments
         this.particleGroup = this.add.group();                // explosion sparks (no physics)
 
-        // Player ship
-        this.player = this.physics.add.image(W / 2, H - 40, "player")
-            .setCollideWorldBounds(true);   // cant move off the left/right edge
-        this.player.alive      = true;      // false when hit with no lives remaining
-        this.player.invincible = false;     // true during the post-hit blink window
+        // Player ship scaled down and positioned at the bottom
+        this.player = this.physics.add.image(W / 2, H - 30, "player")
+            .setCollideWorldBounds(true)  // cant move off the left/right edge
+            .setScale(0.5);               // scaled down to fit the screen
+        this.player.alive      = true;    // false when hit with no lives remaining
+        this.player.invincible = false;   // true during the post-hit blink window
         this.playerGroup.add(this.player);
 
         // 4 bunkers placed across the bottom, each made of 5x3 segments
@@ -140,7 +144,8 @@ class GameScene extends Phaser.Scene {
     // Places enemies for the given wave number
     // Every 5th wave spawns the Mothership boss instead of regulars
     spawnWave(wave) {
-        this.waveClear = false;
+        this.waveClear       = false;
+        this.crittersThrough = 0; // reset critter counter each new wave
 
         // Boss wave check (waves 5, 10, 15, ...)
         if (wave % 5 === 0) {
@@ -165,10 +170,10 @@ class GameScene extends Phaser.Scene {
                     startX + col * spacingX,
                     startY + row * spacingY,
                     "ufo"
-                );
+                ).setScale(0.5); // scaled down to fit the grid
                 ufo.type   = "ufo";
-                ufo.health = 1;     // one hit to kill
-                ufo.points = 100;   // score reward per kill
+                ufo.health = 1;   // one hit to kill
+                ufo.points = 100; // score reward per kill
             }
         }
 
@@ -178,7 +183,7 @@ class GameScene extends Phaser.Scene {
         for (let i = 0; i < critterCount; i++) {
             const cx = 460 + (i % 4) * 44;
             const cy = 30  + Math.floor(i / 4) * 44;
-            const c  = this.enemyGroup.create(cx, cy, "critter");
+            const c  = this.enemyGroup.create(cx, cy, "critter").setScale(0.5); // scaled down
             c.type   = "critter";
             c.health = 2;     // takes 2 hits to kill
             c.points = 200;   // worth more than a UFO
@@ -213,7 +218,7 @@ class GameScene extends Phaser.Scene {
         boss.type   = "boss";
         boss.health = 30 + gameState.wave * 2; // scales with wave number
         boss.points = 5000;
-        boss.setScale(1.4);
+        boss.setScale(0.8); // scaled down to fit the screen
 
         // Store references for use in update() and hit detection
         this.boss      = boss;
@@ -278,8 +283,7 @@ class GameScene extends Phaser.Scene {
             const b = this.eBulletGroup.create(
                 this.boss.x, this.boss.y + 22, "ebullet"
             );
-            b.setScale(1.4);
-            // velocityFromAngle converts degrees to x/y velocity
+            b.setScale(0.6); // increased size so bullets are easier to see
             this.physics.velocityFromAngle(angle, 260, b.body.velocity);
         }
     }
@@ -392,6 +396,7 @@ class GameScene extends Phaser.Scene {
         const shooter = Phaser.Utils.Array.GetRandom(alive);
         const b = this.eBulletGroup.create(shooter.x, shooter.y + 16, "ebullet");
         b.setVelocityY(180 + gameState.wave * 12); // bullet speeds up each wave
+        b.setScale(0.6); // increased size so bullets are easier to see
     }
 
     // PLAYER SHOOT
@@ -404,9 +409,10 @@ class GameScene extends Phaser.Scene {
         this.sound.play("sfx_shoot", { volume: 0.5 });
 
         const b = this.pBulletGroup.create(
-            this.player.x, this.player.y - 24, "pbullet"
+            this.player.x, this.player.y - 60, "pbullet" // spawns above barriers
         );
         b.setVelocityY(-500); // negative Y = upward
+        b.setScale(0.3);      // scaled down so bullet fits the screen
 
         // Lock shooting until the cooldown expires
         this.canShoot = false;
@@ -615,7 +621,7 @@ class GameScene extends Phaser.Scene {
 
         // Player movement - gallery shooter so left and right only
         if (this.player.alive) {
-            const speed = 240; // pixels per second
+            const speed = 480; // pixels per second
 
             if (this.cursors.left.isDown) {
                 this.player.setVelocityX(-speed);
@@ -686,24 +692,23 @@ class GameScene extends Phaser.Scene {
             }
         }
 
-        // Player bullets vs barriers since player can shoot their own cover
-        for (const pb of this.pBulletGroup.getChildren()) {
-            for (const seg of this.barrierGroup.getChildren()) {
-                if (pb.active && seg.active &&
-                    Phaser.Geom.Intersects.RectangleToRectangle(
-                        pb.getBounds(), seg.getBounds()
-                    )) {
-                    this._hitBarrier(pb, seg);
-                    break;
-                }
-            }
-        }
-
-        // Any enemy reaching the bottom row triggers an immediate game over
+        // UFOs or boss reaching the bottom triggers immediate game over
+        // Critters trigger game over only after 3 have gotten through
         for (const e of this.enemyGroup.getChildren()) {
-            if (e.active && e.y >= H - 60) {
-                this._gameOver();
-                return;
+            if (e.active && e.y >= H - 20) {
+                if (e.type === "critter") {
+                    this.crittersThrough++;
+                    e.y = -20; // recycle back to top
+                    e.x = Phaser.Math.Between(40, this.scale.width - 40);
+                    e.setData("diveStarted", false);
+                    if (this.crittersThrough >= 3) {
+                        this._gameOver();
+                        return;
+                    }
+                } else {
+                    this._gameOver();
+                    return;
+                }
             }
         }
 
