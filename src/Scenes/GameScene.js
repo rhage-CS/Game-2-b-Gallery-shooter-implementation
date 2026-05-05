@@ -621,7 +621,7 @@ class GameScene extends Phaser.Scene {
 
         // Player movement - gallery shooter so left and right only
         if (this.player.alive) {
-            const speed = 480; // pixels per second
+            const speed = 485; // pixels per second
 
             if (this.cursors.left.isDown) {
                 this.player.setVelocityX(-speed);
